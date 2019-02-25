@@ -18,6 +18,12 @@ std::string darknetFilePath_ = DARKNET_FILE_PATH;
 #error Path of darknet repository is not defined in CMakeLists.txt.
 #endif
 
+static float get_pixel(image m, int x, int y, int c)
+{
+    assert(x < m.w && y < m.h && c < m.c);
+    return m.data[c*m.h*m.w + y*m.w + x];
+}
+
 namespace darknet_ros {
 
 char *cfg;
@@ -427,7 +433,45 @@ void *YoloObjectDetector::fetchInThread()
 
 void *YoloObjectDetector::displayInThread(void *ptr)
 {
-  show_image_cv(buff_[(buffIndex_ + 1)%3], "YOLO V3", ipl_, viewImage_);
+  // show_image_cv(buff_[(buffIndex_ + 1)%3], "YOLO V3", ipl_, viewImage_);
+  image p = buff_[(buffIndex_ + 1)%3];
+  std::string name = "YOLO V3";
+  IplImage *disp = ipl_;
+  int x,y,k;
+  if(p.c == 3) rgbgr_image(p);
+  //normalize_image(copy);
+
+  char buff[256];
+  //sprintf(buff, "%s (%d)", name, windows);
+  sprintf(buff, "%s", name.c_str());
+
+  int step = disp->widthStep;
+  cvNamedWindow(buff, CV_WINDOW_NORMAL); 
+
+  for(y = 0; y < p.h; ++y){
+      for(x = 0; x < p.w; ++x){
+          for(k= 0; k < p.c; ++k){
+              disp->imageData[y*step + x*p.c + k] = (unsigned char)(get_pixel(p,x,y,k)*255);
+          }
+      }
+  }
+  if(0){
+      int w = 448;
+      int h = w*p.h/p.w;
+      if(h > 1000){
+          h = 1000;
+          w = h*p.w/p.h;
+      }
+      IplImage *buffer = disp;
+      disp = cvCreateImage(cvSize(w, h), buffer->depth, buffer->nChannels);
+      cvResize(buffer, disp, CV_INTER_LINEAR);
+      cvReleaseImage(&buffer);
+  }
+  if (viewImage_) {
+      cvShowImage(buff, disp);
+  }
+
+
   int c = cvWaitKey(waitKeyDelay_);
   if (c != -1) c = c%256;
   if (c == 27) {
@@ -543,9 +587,9 @@ void YoloObjectDetector::yolo()
     if (!demoPrefix_) {
       fps_ = 1./(what_time_is_it_now() - demoTime_);
       demoTime_ = what_time_is_it_now();
-      if (viewImage_) {
+      // if (viewImage_) {
         displayInThread(0);
-      }
+      // }
       publishInThread();
     } else {
       char name[256];
