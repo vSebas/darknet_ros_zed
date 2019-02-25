@@ -446,7 +446,6 @@ void *YoloObjectDetector::displayInThread(void *ptr)
   sprintf(buff, "%s", name.c_str());
 
   int step = disp->widthStep;
-  cvNamedWindow(buff, CV_WINDOW_NORMAL); 
 
   for(y = 0; y < p.h; ++y){
       for(x = 0; x < p.w; ++x){
@@ -468,6 +467,7 @@ void *YoloObjectDetector::displayInThread(void *ptr)
       cvReleaseImage(&buffer);
   }
   if (viewImage_) {
+      cvNamedWindow(buff, CV_WINDOW_NORMAL); 
       cvShowImage(buff, disp);
   }
 
