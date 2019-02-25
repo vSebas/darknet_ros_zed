@@ -24,6 +24,7 @@ char *cfg;
 char *weights;
 char *data;
 char **detectionNames;
+sem_t sem_new_image_; // Semaphore to indicate new image
 
 YoloObjectDetector::YoloObjectDetector(ros::NodeHandle nh)
     : nodeHandle_(nh),
@@ -50,6 +51,7 @@ YoloObjectDetector::~YoloObjectDetector()
     isNodeRunning_ = false;
   }
   yoloThread_.join();
+  sem_destroy(&sem_new_image_);
 }
 
 bool YoloObjectDetector::readParameters()
@@ -88,6 +90,9 @@ void YoloObjectDetector::init()
   std::string dataPath;
   std::string configModel;
   std::string weightsModel;
+
+  // Initialize semaphore
+  sem_init(&sem_new_image_, 0, 0);
 
   // Threshold of object detection.
   float thresh;
@@ -204,6 +209,7 @@ void YoloObjectDetector::cameraCallback(const sensor_msgs::ImageConstPtr& msg)
     }
     frameWidth_ = cam_image->image.size().width;
     frameHeight_ = cam_image->image.size().height;
+    sem_post(&sem_new_image_);
   }
   return;
 }
@@ -530,6 +536,7 @@ void YoloObjectDetector::yolo()
   demoTime_ = what_time_is_it_now();
 
   while (!demoDone_) {
+    sem_wait(&sem_new_image_);
     buffIndex_ = (buffIndex_ + 1) % 3;
     fetch_thread = std::thread(&YoloObjectDetector::fetchInThread, this);
     detect_thread = std::thread(&YoloObjectDetector::detectInThread, this);

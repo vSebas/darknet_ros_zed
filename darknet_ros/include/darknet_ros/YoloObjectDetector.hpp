@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <thread>
 #include <chrono>
+#include <semaphore.h>
 
 // ROS
 #include <ros/ros.h>
