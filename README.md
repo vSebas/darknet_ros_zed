@@ -2,6 +2,7 @@
 
 ## Updates made by Marcelino Almeida:
 -- Fixed issue that this node would publish garbage into ROS when using with a TX1 or TX2.
+
 -- Added semaphores to avoid processing the same image twice (the original version of this branch would be extensively using CPU/GPU reprocessing repeated images that were at a low frequency).
 
 ## Overview
