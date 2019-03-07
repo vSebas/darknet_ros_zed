@@ -179,9 +179,8 @@ void YoloObjectDetector::init()
                                                            objectDetectorLatch);
   boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(
       boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
-  detectionImagePublisher_ = nodeHandle_.advertise<sensor_msgs::Image>(detectionImageTopicName,
-                                                                       detectionImageQueueSize,
-                                                                       detectionImageLatch);
+  detectionImagePublisher_ = imageTransport_.advertise(detectionImageTopicName,
+                                                                       detectionImageQueueSize);
 
   ROS_INFO("Waiting for images in topic: %s", imageSubscriber_.getTopic().c_str());
 
@@ -678,9 +677,9 @@ void *YoloObjectDetector::publishInThread()
         }
       }
     }
-    boundingBoxesResults_.header.stamp = ros::Time::now();
-    boundingBoxesResults_.header.frame_id = "detection";
     boundingBoxesResults_.image_header = headerBuff_[(buffIndex_ + 1) % 3];
+    boundingBoxesResults_.header.stamp = boundingBoxesResults_.image_header.stamp;
+    boundingBoxesResults_.header.frame_id = "detection";
     boundingBoxesPublisher_.publish(boundingBoxesResults_);
   } else {
     std_msgs::Int8 msg;
