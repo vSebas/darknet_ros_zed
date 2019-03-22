@@ -169,18 +169,20 @@ void YoloObjectDetector::init()
   nodeHandle_.param("publishers/detection_image/latch", detectionImageLatch, true);
 
   if(ns.length() > 0) {
-    cameraTopicName = "/" + ns + "/" + cameraTopicName;
+    cameraTopicName         = "/" + ns + "/" + cameraTopicName;
+    objectDetectorTopicName = "/" + ns + "/" + objectDetectorTopicName;
+    boundingBoxesTopicName  = "/" + ns + "/" + boundingBoxesTopicName;
+    detectionImageTopicName = "/" + ns + "/" + detectionImageTopicName;
   }
 
   imageSubscriber_ = imageTransport_.subscribe(cameraTopicName, cameraQueueSize,
                                                &YoloObjectDetector::cameraCallback, this);
-  objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>(objectDetectorTopicName,
-                                                           objectDetectorQueueSize,
-                                                           objectDetectorLatch);
-  boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>(
-      boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
-  detectionImagePublisher_ = imageTransport_.advertise(detectionImageTopicName,
-                                                                       detectionImageQueueSize);
+  objectPublisher_ = nodeHandle_.advertise<std_msgs::Int8>
+      (objectDetectorTopicName, objectDetectorQueueSize, objectDetectorLatch);
+  boundingBoxesPublisher_ = nodeHandle_.advertise<darknet_ros_msgs::BoundingBoxes>
+      (boundingBoxesTopicName, boundingBoxesQueueSize, boundingBoxesLatch);
+  detectionImagePublisher_ = imageTransport_.advertise
+      (detectionImageTopicName, detectionImageQueueSize);
 
   ROS_INFO("Waiting for images in topic: %s", imageSubscriber_.getTopic().c_str());
 
