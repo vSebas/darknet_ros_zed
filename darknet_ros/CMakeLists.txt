@@ -57,6 +57,7 @@ find_package(catkin REQUIRED
     actionlib
     darknet_ros_msgs
     image_transport
+    message_filters
 )
 
 # Enable OPENCV in darknet
@@ -76,6 +77,7 @@ catkin_package(
     std_msgs
     darknet_ros_msgs
     image_transport
+    message_filters
   DEPENDS
     Boost
 )
@@ -246,12 +248,12 @@ if (NOT EXISTS "${FILE}")
 endif()
 
 # Download yolov3.weights
-set(FILE "${PATH}/yolov3.weights")
-message(STATUS "Checking and downloading yolov3.weights if needed ...")
-if (NOT EXISTS "${FILE}")
-  message(STATUS "... file does not exist. Downloading now ...")
-  execute_process(COMMAND wget http://pjreddie.com/media/files/yolov3.weights -P ${PATH})
-endif()
+# set(FILE "${PATH}/yolov3.weights")
+# message(STATUS "Checking and downloading yolov3.weights if needed ...")
+# if (NOT EXISTS "${FILE}")
+#  message(STATUS "... file does not exist. Downloading now ...")
+#  execute_process(COMMAND wget http://pjreddie.com/media/files/yolov3.weights -P ${PATH})
+# endif()
 
 #############
 ## Testing ##
