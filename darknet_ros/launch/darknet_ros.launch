@@ -12,6 +12,9 @@
   <arg name="ros_param_file"             default="$(find darknet_ros)/config/ros.yaml"/>
   <arg name="network_param_file"         default="$(find darknet_ros)/config/yolov2-tiny.yaml"/>
 
+  <!-- Zed camera (depth measurement) -->
+  <arg name="zed"                        default="false"/>
+
   <!-- Load parameters -->
   <rosparam command="load" ns="darknet_ros" file="$(arg ros_param_file)"/>
   <rosparam command="load" ns="darknet_ros" file="$(arg network_param_file)"/>
@@ -20,7 +23,7 @@
   <node pkg="darknet_ros" type="darknet_ros" name="darknet_ros" output="screen" launch-prefix="$(arg launch_prefix)">
     <param name="weights_path"          value="$(arg yolo_weights_path)" />
     <param name="config_path"           value="$(arg yolo_config_path)" />
+    <param name="zed_enable"            value="$(arg zed)" />
   </node>
 
- <!--<node name="republish" type="republish" pkg="image_transport" output="screen" 	args="compressed in:=/front_camera/image_raw raw out:=/camera/image_raw" /> -->
 </launch>
