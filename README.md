@@ -1,19 +1,25 @@
-# YOLO ROS: Real-Time Object Detection for ROS
-
-## Updates made by Marcelino Almeida:
--- Fixed issue that this node would publish garbage into ROS when using with a TX1 or TX2.
-
--- Added semaphores to avoid processing the same image twice (the original version of this branch would be extensively using CPU/GPU reprocessing repeated images that were at a low frequency).
+# YOLO ROS ZED: Real-Time Object Detection for ROS with ZED depth estimation
 
 ## Overview
 
-This is a ROS package developed for object detection in camera images. You only look once (YOLO) is a state-of-the-art, real-time object detection system. In the following ROS package you are able to use YOLO (V3) on GPU and CPU. The pre-trained model of the convolutional neural network is able to detect pre-trained classes including the data set from VOC and COCO, or you can also create a network with your own detection objects. For more information about YOLO, Darknet, available training data and training YOLO see the following link: [YOLO: Real-Time Object Detection](http://pjreddie.com/darknet/yolo/).
+This project extends the **ROS** package developed by [@leggedrobotics](https://github.com/leggedrobotics/darknet_ros) for **object detection and distance estimation** (depth) in **ZED camera** images. *You Only Look Once (YOLO)* is a state-of-the-art, real-time object detection system. In this ROS package you are able to use any *YOLO* model (including *YOLOv3* and *tiny*-*YOLO*) on GPU and CPU. The pre-trained model of the convolutional neural network is able to detect pre-trained classes including the data set from VOC and COCO, or you can also create a network with your own detection objects. For more information about YOLO, Darknet, available training data and training YOLO see the following link: [YOLO: Real-Time Object Detection](http://pjreddie.com/darknet/yolo/).
 
-The YOLO packages have been tested under ROS Melodic and Ubuntu 18.04. This is research code, expect that it changes often and any fitness for a particular purpose is disclaimed.
+The YOLO packages have been tested under ROS Melodic and Ubuntu 18.04. The code is still a work in progress, any help or bug report is welcome.
 
-**Author: [Marko Bjelonic](http://www.markobjelonic.me), marko.bjelonic@mavt.ethz.ch**
+### Credits
 
+This repo is a fork of other forks. The original repository is from @leggedrobotics; @marcelinomalmeidan implemented some relevant bugfixes; @leoll2 (that's me!) added support for ZED camera and distance estimation of targets.
+
+**Original Author: [Marko Bjelonic](http://www.markobjelonic.me), marko.bjelonic@mavt.ethz.ch**
 **Affiliation: [Robotic Systems Lab](http://www.rsl.ethz.ch/), ETH Zurich**
+
+**Contributor: [Marcelino Almeida](https://github.com/marcelinomalmeidan)**
+**Affiliation: University of Texas, Austin**
+
+**Contributor: [Leonardo Lai](https://github.com/leoll2)**
+**Affiliation: [Sant'Anna School of Advanced Studies](https://www.santannapisa.it), Pisa, Italy**
+
+---
 
 ![Darknet Ros example: Detection image](darknet_ros/doc/test_detection.png)
 ![Darknet Ros example: Detection image](darknet_ros/doc/test_detection_anymal.png)
@@ -158,6 +164,7 @@ You can change the names and other parameters of the publishers, subscribers and
 * **`bounding_boxes`** ([darknet_ros_msgs::BoundingBoxes])
 
     Publishes an array of bounding boxes that gives information of the position and size of the bounding box in pixel coordinates.
+    It also contains a field providing an estimation of the object distance from the camera.
 
 * **`detection_image`** ([sensor_msgs::Image])
 
