@@ -244,7 +244,7 @@ void YoloObjectDetector::zedCameraCallback(const sensor_msgs::ImageConstPtr& img
   return;
 }
 
-void YoloObjectDetector::checkForObjectsActionGoalCB()  // TODO: add stereocamera support
+void YoloObjectDetector::checkForObjectsActionGoalCB()  // TODO: fix this, adding zed support
 {
   ROS_DEBUG("[YoloObjectDetector] Start check for objects action.");
 
@@ -442,10 +442,11 @@ void *YoloObjectDetector::detectInThread()
           roiBoxes_[count].z = getObjDepth(xmin, xmax, ymin, ymax);
           roiBoxes_[count].Class = j;
           roiBoxes_[count].prob = dets[i].prob[j];
-          count++;
           
-          if (j == 0)   // DEBUG: class person TODO: remove
-            printf("Person at distance %f meters\n", roiBoxes_[count-1].z);
+          if (enableConsoleOutput_)
+            printf("at distance %4.2f m\n", roiBoxes_[count].z);
+
+          ++count;
         }
       }
     }
@@ -480,18 +481,17 @@ void *YoloObjectDetector::fetchInThread()
   return 0;
 }
 
+/* TODO: this code appears to be quite inefficient (e.g. triple nested loop).
+*  I notice a slight increase in FPS when this is disabled, hence a rework is needed. */
 void *YoloObjectDetector::displayInThread(void *ptr)
 {
-  // show_image_cv(buff_[(buffIndex_ + 1)%3], "YOLO V3", ipl_, viewImage_);
   image p = buff_[(buffIndex_ + 1)%3];
   std::string name = "YOLO V3";
   IplImage *disp = ipl_;
   int x,y,k;
   if(p.c == 3) rgbgr_image(p);
-  //normalize_image(copy);
 
   char buff[256];
-  //sprintf(buff, "%s (%d)", name, windows);
   sprintf(buff, "%s", name.c_str());
 
   int step = disp->widthStep;
