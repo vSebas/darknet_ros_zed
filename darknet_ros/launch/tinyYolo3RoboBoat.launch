@@ -27,6 +27,10 @@
     <param name="weights_path"          value="$(arg yolo_weights_path)" />
     <param name="config_path"           value="$(arg yolo_config_path)" />
     <param name="zed_enable"            value="$(arg zed)" />
+    <param name="optical_center_x"      value="626.409"/> <!-- In pixels -->
+    <param name="optical_center_y"      value="390.348"/> <!-- In pixels -->
+    <param name="focal_length_x"        value="679.474"/> <!-- In pixels -->
+    <param name="focal_length_y"        value="679.474"/> <!-- In pixels -->
     <remap from="camera/color/image_raw"  to="$(arg image)" />
     <remap from="camera/depth/dmap"       to="$(arg dmap)" />
   </node>

@@ -4,4 +4,6 @@ int64 xmin
 int64 ymin
 int64 xmax
 int64 ymax
+float32 x
+float32 y
 float32 z

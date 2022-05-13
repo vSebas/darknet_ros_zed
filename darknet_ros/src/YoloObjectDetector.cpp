@@ -24,6 +24,37 @@ static float get_pixel(image m, int x, int y, int c)
     return m.data[c*m.h*m.w + y*m.w + x];
 }
 
+// float convert_depth_from_pixel_to_metric_coordinate(const float &depth, const float &c_i, const float &f_id, const float &pixel_i)
+// {
+//   float i_coord = (pixel_i - c_i)/f_id * depth;
+//   return i_coord;
+// }
+
+std::vector<float> convert_depth_from_pixel_to_metric_coordinates(const float &depth, const float &c_x, const float &c_y, const float &f_x, const float &f_y, const float &u, const float &v)
+{
+  std::vector<float> xyz;
+  // float hAngle = std::atan((u - frameWidth_/2), f_x);
+  float hAngle = atan((u - c_x)/f_x);
+  float vAngle = atan((v - c_y)/f_y);
+  xyz.push_back(depth*std::cos(hAngle)); // x
+  xyz.push_back(depth*std::cos(vAngle)*std::sin(hAngle)); // y
+  xyz.push_back(-depth*std::sin(vAngle)*std::sin(hAngle)); // z
+  ROS_INFO("Bounding Box x_pix: %f", u);
+  ROS_INFO("Bounding Box y_pix: %f", v);
+  ROS_INFO("optical_center_x: %f", c_x);
+  ROS_INFO("optical_center_y: %f", c_y);
+  ROS_INFO("Horizontal angle: %f deg", hAngle*180/3.141516);
+  ROS_INFO("Vertical angle: %f deg", vAngle*180/3.141516);
+  ROS_INFO("cosine of Horizontal angle: %f deg", std::cos(hAngle));
+  ROS_INFO("cosine of Vertical angle: %f deg", std::cos(vAngle));
+  ROS_INFO("sine of Horizontal angle: %f deg", std::sin(hAngle));
+  ROS_INFO("sine of Vertical angle: %f deg", std::sin(vAngle));
+  ROS_INFO("x: %f", xyz[0]);
+  ROS_INFO("y: %f", xyz[1]);
+  ROS_INFO("z: %f", xyz[2]);
+  return xyz;
+}
+
 namespace darknet_ros {
 
 char *cfg;
@@ -101,8 +132,12 @@ void YoloObjectDetector::init()
   // Initialize semaphore
   sem_init(&sem_new_image_, 0, 0);
 
-  // ZED camera
+  // ZED camera. HD720 factory params are chosen as default
   nodeHandle_.param("zed_enable", zed, false);
+  nodeHandle_.param("optical_center_x", cx, (float) 665.54);
+  nodeHandle_.param("optical_center_y", cy, (float) 371.155);
+  nodeHandle_.param("focal_length_x", fx, (float) 700.895);
+  nodeHandle_.param("focal_length_y", fy, (float) 700.895);
 
   // Threshold of object detection.
   float thresh;
@@ -370,7 +405,6 @@ float YoloObjectDetector::getObjDepth(float xmin, float xmax, float ymin, float 
   }
   
   std::sort(depths.begin(), depths.end());
-
   if (depths.size() > 1) {
     // printf("depth at (%d, %d): %f\n", (int)((xmin+xmax)/2*frameWidth_), (int)((ymin+ymax)/2*frameHeight_), depths[1]);
     return depths[1];
@@ -431,20 +465,29 @@ void *YoloObjectDetector::detectInThread()
         float y_center = (ymin + ymax) / 2;
         float BBox_width = xmax - xmin;
         float BBox_height = ymax - ymin;
+        std::vector<float> xyz;
+        float depth;
 
         // define bounding box
         // BoundingBox must be 1% size of frame (3.2x2.4 pixels)
         if (BBox_width > 0.01 && BBox_height > 0.01) {
+          depth = getObjDepth(xmin, xmax, ymin, ymax);
+          xyz = convert_depth_from_pixel_to_metric_coordinates(depth, frameWidth_/2, frameHeight_/2, fx, fy, x_center*frameWidth_, y_center*frameHeight_);
           roiBoxes_[count].x = x_center;
           roiBoxes_[count].y = y_center;
           roiBoxes_[count].w = BBox_width;
           roiBoxes_[count].h = BBox_height;
-          roiBoxes_[count].z = getObjDepth(xmin, xmax, ymin, ymax);
+          // roiBoxes_[count].z = getObjDepth(xmin, xmax, ymin, ymax);
+          // roiBoxes_[count].x_ = convert_depth_from_pixel_to_metric_coordinate(roiBoxes_[count].z, cx, fx, x_center);
+          // roiBoxes_[count].y_ = convert_depth_from_pixel_to_metric_coordinate(roiBoxes_[count].z, cy, fy, y_center);
+          roiBoxes_[count].x_ = xyz[0];
+          roiBoxes_[count].y_ = xyz[1];
+          roiBoxes_[count].z = xyz[2];
           roiBoxes_[count].Class = j;
           roiBoxes_[count].prob = dets[i].prob[j];
           
           if (enableConsoleOutput_)
-            printf("at distance %4.2f m\n", roiBoxes_[count].z);
+            printf("at distance %4.2f m\n", depth);
 
           ++count;
         }
@@ -715,7 +758,13 @@ void *YoloObjectDetector::publishInThread()
           boundingBox.ymin = ymin;
           boundingBox.xmax = xmax;
           boundingBox.ymax = ymax;
-          boundingBox.z = rosBoxes_[i][j].z;
+          // To NED frame
+          // boundingBox.x = rosBoxes_[i][j].z;
+          // boundingBox.y = rosBoxes_[i][j].x_;
+          // boundingBox.z = -rosBoxes_[i][j].y_;
+          boundingBox.x = rosBoxes_[i][j].x_;
+          boundingBox.y = rosBoxes_[i][j].y_;
+          boundingBox.z = -rosBoxes_[i][j].z;
           boundingBoxesResults_.bounding_boxes.push_back(boundingBox);
         }
       }

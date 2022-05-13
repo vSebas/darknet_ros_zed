@@ -71,7 +71,7 @@ namespace darknet_ros {
 //! Bounding box of the detected object.
 typedef struct
 {
-  float x, y, w, h, prob, z;
+  float x, y, w, h, prob, z, x_, y_;
   int num, Class;
 } RosBox_;
 
@@ -175,6 +175,10 @@ class YoloObjectDetector
   int frameWidth_;
   int frameHeight_;
   bool zed;
+  float fx;
+  float fy;
+  float cx;
+  float cy;
 
   //! Publisher of the bounding box image.
   image_transport::Publisher detectionImagePublisher_;
