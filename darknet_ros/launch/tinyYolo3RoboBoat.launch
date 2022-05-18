@@ -7,6 +7,9 @@
   <arg name="image" default="/zed/zed_node/rgb_raw/image_raw_color" />
   <arg name="dmap" default="/zed/zed_node/depth/depth_registered" />
 
+  <!-- <arg name="image" default="/r200/camera/color/image_raw" />
+  <arg name="dmap" default="/r200/camera/depth/image_raw" /> -->
+
   <!-- Config and weights folder. -->
   <arg name="yolo_weights_path"          default="$(find darknet_ros)/yolo_network_config/weights"/>
   <arg name="yolo_config_path"           default="$(find darknet_ros)/yolo_network_config/cfg"/>
